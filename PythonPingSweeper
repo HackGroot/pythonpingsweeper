@@ -1,0 +1,25 @@
+import socket
+import ipaddress
+
+# CIDR to scan
+cidr = "192.168.1.0/24"
+start_port = 1
+end_port = 65535
+
+# Open a file to write the results to
+with open("ping_sweeper_results.txt", "w") as f:
+    # Get a list of all IP addresses in the CIDR range
+    for ip in ipaddress.ip_network(cidr).hosts():
+        try:
+            # Try to connect to each IP address on each port in the specified range
+            for port in range(start_port, end_port+1):
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(0.5)
+                result = s.connect_ex((str(ip), port))
+                if result == 0:
+                    f.write("Open port detected: IP={}, Port={}\n".format(ip, port))
+                s.close()
+        except socket.error:
+            # Log any errors that occur when trying to connect
+            f.write("Error connecting to host: IP={}\n".format(ip))
+
